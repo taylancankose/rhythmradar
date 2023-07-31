@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {authorize, refresh} from 'react-native-app-auth';
+import {useDispatch} from 'react-redux';
+import {setLogin} from '../redux/authSlicer';
 
 const spotifyConfig = {
   clientId: '71add05410cb47b99167ee9e3fba37a5',
@@ -32,6 +34,7 @@ const spotifyConfig = {
     tokenEndpoint: 'https://accounts.spotify.com/api/token',
   },
 };
+const dispatch = useDispatch();
 
 export const onLogin = async () => {
   try {
@@ -44,6 +47,7 @@ export const onLogin = async () => {
       'refreshToken',
       JSON.stringify(session.refreshToken),
     );
+    dispatch(setLogin);
   } catch (error) {
     console.log(error);
   }
