@@ -1,15 +1,40 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import Home from './screens/Home';
 import Login from './screens/Login';
 import {NavigationContainer} from '@react-navigation/native';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {setLogin} from './redux/authSlicer';
 
 const Stack = createNativeStackNavigator();
 
 const Router = () => {
-  const accessToken = useSelector(state => state?.authSlice?.accessToken);
+  const accessToken = useSelector(state => state?.authSlicer?.accessToken);
+  console.log(accessToken, 'acc');
+  const dispatch = useDispatch();
+  const getAccessToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem('accessToken');
+      console.error(token);
+      const refToken = await AsyncStorage.getItem('refreshToken');
+      if (token !== null) {
+        const data = {
+          accessToken: token,
+          refreshToken: refToken,
+          error: false,
+        };
+        dispatch(setLogin(data));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getAccessToken();
+  }, []);
 
   return (
     <NavigationContainer>
@@ -17,7 +42,7 @@ const Router = () => {
         style={{
           flex: 1,
         }}>
-        {accessToken !== null ? (
+        {accessToken !== undefined ? (
           <Stack.Navigator>
             <Stack.Group
               screenOptions={{

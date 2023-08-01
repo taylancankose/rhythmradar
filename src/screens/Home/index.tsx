@@ -2,37 +2,24 @@ import {View, Text, Image, Button} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useSelector} from 'react-redux';
 
 const Home = () => {
-  const [accessToken, setAccessToken] = useState(null);
-  const [refreshToken, setRefreshToken] = useState(null);
   const [me, setMe] = useState();
   const [recSong, setRecSong] = useState();
+  const accessToken = useSelector(state => state.authSlicer.accessToken);
+  console.error(accessToken);
   const config = {
     headers: {
-      Authorization: `Bearer ${accessToken?.substring(
-        1,
-        accessToken?.length - 1,
-      )}`,
+      Authorization: `Bearer ${
+        accessToken.includes(`"`)
+          ? accessToken.substring(1, accessToken?.length - 1)
+          : accessToken
+      }`,
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
   };
-  const getAccessToken = async () => {
-    try {
-      const token = await AsyncStorage.getItem('accessToken');
-      const refreshToken = await AsyncStorage.getItem('refreshToken');
-      if (token !== null) {
-        setAccessToken(token);
-        setRefreshToken(refreshToken);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  useEffect(() => {
-    getAccessToken();
-  }, []);
 
   const getMe = async () => {
     try {
@@ -41,15 +28,12 @@ const Home = () => {
       setMe(res);
     } catch (error) {
       console.log(error, 'hata');
-      setAccessToken(null);
-      setRefreshToken(null);
     }
   };
 
   useEffect(() => {
     if (accessToken !== null) getMe();
   }, [accessToken]);
-  console.log(accessToken);
 
   const getSongRecom = async () => {
     try {
@@ -71,8 +55,6 @@ const Home = () => {
       console.log(error, 'rec error');
     }
   };
-  console.log(recSong);
-  console.log(me);
 
   const topTracksIds = [
     '7tQcC1acYIOLUpoaTABfvN',
@@ -81,6 +63,7 @@ const Home = () => {
     '4OH5Cd8ZOI1eSgJSC9PYmU',
     '28GSxEfVJew8fCa5dhB0iR',
   ];
+
   return (
     <View
       style={{

@@ -34,29 +34,35 @@ const spotifyConfig = {
     tokenEndpoint: 'https://accounts.spotify.com/api/token',
   },
 };
-const dispatch = useDispatch();
 
-export const onLogin = async () => {
-  try {
-    const session = await authorize(spotifyConfig);
-    await AsyncStorage.setItem(
-      'accessToken',
-      JSON.stringify(session.accessToken),
-    );
-    await AsyncStorage.setItem(
-      'refreshToken',
-      JSON.stringify(session.refreshToken),
-    );
-    dispatch(setLogin);
-  } catch (error) {
-    console.log(error);
-  }
+const onLogin = async () => {
+  const dispatch = useDispatch();
+
+  const handleLogin = async () => {
+    try {
+      const session = await authorize(spotifyConfig);
+      await AsyncStorage.setItem(
+        'accessToken',
+        JSON.stringify(session.accessToken),
+      );
+      await AsyncStorage.setItem(
+        'refreshToken',
+        JSON.stringify(session.refreshToken),
+      );
+      console.log(session.accessToken, 'session');
+      dispatch(setLogin(session.accessToken));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const refreshLogin = async refreshToken => {
+    const result = await refresh(spotifyConfig, {
+      refreshToken,
+    });
+    console.log(result, 'refreshlogin');
+    return result;
+  };
 };
 
-export const refreshLogin = async refreshToken => {
-  const result = await refresh(spotifyConfig, {
-    refreshToken,
-  });
-  console.log(result, 'refreshlogin');
-  return result;
-};
+export default onLogin;

@@ -1,22 +1,23 @@
 import {createSlice} from '@reduxjs/toolkit';
 
+const initalState = {
+  refreshToken: undefined,
+  accessToken: undefined,
+  error: false,
+};
+
 const authSlice = createSlice({
   name: 'authSlice',
-  initialState: {
-    accessToken: null,
-    refreshToken: null,
-    me: null,
-    error: false,
-    loading: true,
-  },
+  initialState: initalState,
   reducers: {
     setLogin: (state, action) => {
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken;
+      state.error = false;
     },
     setLogout: (state, action) => {
-      state.accessToken = null;
-      state.refreshToken = null;
+      state.accessToken = undefined;
+      state.refreshToken = undefined;
     },
   },
 });
