@@ -49,7 +49,6 @@ const onLogin = async () => {
         'refreshToken',
         JSON.stringify(session.refreshToken),
       );
-      console.log(session.accessToken, 'session');
       dispatch(setLogin(session.accessToken));
     } catch (error) {
       console.log(error);

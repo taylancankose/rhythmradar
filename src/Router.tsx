@@ -12,12 +12,10 @@ const Stack = createNativeStackNavigator();
 
 const Router = () => {
   const accessToken = useSelector(state => state?.authSlicer?.accessToken);
-  console.log(accessToken, 'acc');
   const dispatch = useDispatch();
   const getAccessToken = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
-      console.error(token);
       const refToken = await AsyncStorage.getItem('refreshToken');
       if (token !== null) {
         const data = {

@@ -1,14 +1,29 @@
-import {createSlice} from '@reduxjs/toolkit';
+import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
+import axios from 'axios';
 
-const initalState = {
-  refreshToken: undefined,
-  accessToken: undefined,
-  error: false,
-};
+export const getMe = createAsyncThunk('me', async accessToken => {
+  try {
+    const response = await axios.get('https://api.spotify.com/v1/me', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const res = await response.data;
+    return res;
+  } catch (error) {
+    console.log(error, 'hataaaa');
+    accessToken === undefined;
+  }
+});
 
 const authSlice = createSlice({
   name: 'authSlice',
-  initialState: initalState,
+  initialState: {
+    refreshToken: undefined,
+    accessToken: undefined,
+    error: false,
+    me: undefined,
+  },
   reducers: {
     setLogin: (state, action) => {
       state.accessToken = action.payload.accessToken;
@@ -18,6 +33,16 @@ const authSlice = createSlice({
     setLogout: (state, action) => {
       state.accessToken = undefined;
       state.refreshToken = undefined;
+    },
+  },
+  extraReducers: {
+    [getMe.fulfilled]: (state, action) => {
+      state.me = action.payload;
+    },
+    [getMe.rejected]: (state, action) => {
+      state.accessToken = undefined;
+      state.rejected = undefined;
+      state.error = action.error.message;
     },
   },
 });

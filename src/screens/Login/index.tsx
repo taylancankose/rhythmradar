@@ -47,6 +47,7 @@ const Login = () => {
         'accessToken',
         JSON.stringify(session.accessToken),
       );
+      console.error(session);
       await AsyncStorage.setItem(
         'refreshToken',
         JSON.stringify(session.refreshToken),
