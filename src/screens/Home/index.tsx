@@ -1,60 +1,33 @@
-import {
-  View,
-  Text,
-  Image,
-  Button,
-  Dimensions,
-  TouchableOpacity,
-} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import {View, Text, Image, Dimensions, TouchableOpacity} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useDispatch, useSelector} from 'react-redux';
-import {getMe, setLogin} from '../../redux/authSlicer';
+import {getMe, setLogin, setLogout} from '../../redux/authSlicer';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import {useDispatch, useSelector} from 'react-redux';
+import {getSongRecom} from '../../redux/userSlicer';
+import React, {useEffect} from 'react';
 
 const Home = () => {
-  // const [me, setMe] = useState();
-  const [recSong, setRecSong] = useState();
   const accessToken = useSelector(state => state.authSlicer.accessToken);
+  const recSong = useSelector(state => state.userSlicer.recSong);
   const me = useSelector(state => state.authSlicer.me);
   const dispatch = useDispatch();
+
   useEffect(() => {
     if (accessToken !== undefined) {
       const accToken = accessToken.includes(`"`)
         ? accessToken.substring(1, accessToken?.length - 1)
         : accessToken;
       dispatch(getMe(accToken));
-    }
-    if (me === undefined && !accessToken) {
-      const data = {
-        accessToken: undefined,
-        refreshToken: undefined,
-        error: true,
-      };
-      dispatch(setLogin(data));
+      if (me === undefined) {
+        const data = {
+          accessToken: undefined,
+          refreshToken: undefined,
+          error: true,
+        };
+        dispatch(setLogin(data));
+      }
     }
   }, [accessToken]);
-
-  const getSongRecom = async () => {
-    try {
-      console.log('basıldı');
-      const res = await fetch(
-        'https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA',
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken?.substring(
-              1,
-              accessToken?.length - 1,
-            )}`,
-          },
-        },
-      );
-      const response = await res.json();
-      setRecSong(response);
-    } catch (error) {
-      console.log(error, 'rec error');
-    }
-  };
 
   const topTracksIds = [
     '7tQcC1acYIOLUpoaTABfvN',
@@ -65,12 +38,7 @@ const Home = () => {
   ];
 
   const handleLogout = async () => {
-    const data = {
-      accessToken: undefined,
-      refreshToken: undefined,
-      error: true,
-    };
-    dispatch(setLogin(data));
+    dispatch(setLogout());
     await AsyncStorage.removeItem('accessToken');
   };
 
@@ -131,7 +99,7 @@ const Home = () => {
         {/* Generate Playlist */}
         <View
           style={{
-            backgroundColor: '#8783D1',
+            backgroundColor: '#6741FF',
             marginBottom: 5,
             borderRadius: 15,
             flexDirection: 'row',
@@ -166,17 +134,23 @@ const Home = () => {
               </Text>
             </View>
             <TouchableOpacity
-              onPress={getSongRecom}
+              onPress={() => dispatch(getSongRecom(accessToken))}
               style={{
                 paddingVertical: 6,
-                backgroundColor: '#FFEE93',
+                backgroundColor: '#DEFC22',
                 width: Dimensions.get('window').width / 3.5,
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 15,
-                elevation: 10,
+                elevation: 20,
               }}>
-              <Text>Create now</Text>
+              <Text
+                style={{
+                  color: 'black',
+                  fontWeight: '500',
+                }}>
+                Create now
+              </Text>
             </TouchableOpacity>
           </View>
           <View

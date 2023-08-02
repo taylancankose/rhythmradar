@@ -1,9 +1,9 @@
 import {View, Text, ImageBackground, TouchableOpacity} from 'react-native';
-import React from 'react';
-import {authorize} from 'react-native-app-auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useDispatch, useSelector} from 'react-redux';
+import {authorize} from 'react-native-app-auth';
 import {setLogin} from '../../redux/authSlicer';
+import React from 'react';
 
 const spotifyConfig = {
   clientId: '71add05410cb47b99167ee9e3fba37a5',
@@ -39,7 +39,6 @@ const spotifyConfig = {
 
 const Login = () => {
   const dispatch = useDispatch();
-
   const handleLogin = async () => {
     try {
       const session = await authorize(spotifyConfig);

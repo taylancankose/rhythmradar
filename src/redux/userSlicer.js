@@ -1,49 +1,37 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import {useDispatch} from 'react-redux';
-import {setLogin} from './authSlicer';
-import axios from 'axios';
 
-const initalState = {
-  me: undefined,
-};
-
-export const getMe = createAsyncThunk('meUser', async accessToken => {
+export const getSongRecom = createAsyncThunk('song', async accessToken => {
   try {
-    const response = await axios.get('https://api.spotify.com/v1/me', {
-      headers: {
-        Authorization: `Bearer ${
-          accessToken.includes(`"`)
-            ? accessToken.substring(1, accessToken?.length - 1)
-            : accessToken
-        }`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
+    const res = await fetch(
+      'https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA',
+      {
+        headers: {
+          Authorization: `Bearer ${
+            accessToken.includes(`"`)
+              ? accessToken.substring(1, accessToken?.length - 1)
+              : accessToken
+          }`,
+        },
       },
-    });
-    return await response.data;
+    );
+    const response = await res.json();
+    return response;
   } catch (error) {
-    console.log(error, 'hataaaa');
+    console.log(error, 'get error');
   }
 });
 
 const userSlicer = createSlice({
   name: 'userSlicer',
-  initialState: initalState,
-  reducers: {
-    setMe: (state, action) => {
-      state.me = action.payload;
-    },
+  initialState: {
+    recSong: undefined,
   },
   extraReducers: {
-    [getMe.fulfilled]: (state, action) => {
-      state.me = action.payload;
+    [getSongRecom.fulfilled]: (state, action) => {
+      state.recSong = action.payload;
     },
-    [getMe.rejected]: (state, action) => {
-      const data = {
-        accessToken: undefined,
-        refreshToken: undefined,
-        error: true,
-      };
+    [getSongRecom.rejected]: (state, action) => {
+      state.recSong = undefined;
     },
   },
 });

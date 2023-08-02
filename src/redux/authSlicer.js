@@ -33,6 +33,7 @@ const authSlice = createSlice({
     setLogout: (state, action) => {
       state.accessToken = undefined;
       state.refreshToken = undefined;
+      state.error = false;
     },
   },
   extraReducers: {

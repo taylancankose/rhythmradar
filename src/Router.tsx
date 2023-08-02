@@ -1,18 +1,19 @@
-import React, {useEffect} from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import Home from './screens/Home';
-import Login from './screens/Login';
-import {NavigationContainer} from '@react-navigation/native';
-import {useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {NavigationContainer} from '@react-navigation/native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useDispatch, useSelector} from 'react-redux';
 import {setLogin} from './redux/authSlicer';
+import React, {useEffect} from 'react';
+import Login from './screens/Login';
+import Home from './screens/Home';
 
 const Stack = createNativeStackNavigator();
 
 const Router = () => {
   const accessToken = useSelector(state => state?.authSlicer?.accessToken);
   const dispatch = useDispatch();
+
   const getAccessToken = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
