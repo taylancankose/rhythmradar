@@ -12,28 +12,27 @@ export const getMe = createAsyncThunk('me', async accessToken => {
     return res;
   } catch (error) {
     console.log(error, 'hataaaa');
-    accessToken === undefined;
   }
 });
 
 const authSlice = createSlice({
   name: 'authSlice',
   initialState: {
-    refreshToken: undefined,
     accessToken: undefined,
     error: false,
     me: undefined,
+    expiresIn: undefined,
   },
   reducers: {
     setLogin: (state, action) => {
       state.accessToken = action.payload.accessToken;
-      state.refreshToken = action.payload.refreshToken;
       state.error = false;
+      state.expiresIn = action.payload.expiresIn;
     },
     setLogout: (state, action) => {
       state.accessToken = undefined;
-      state.refreshToken = undefined;
       state.error = false;
+      state.expiresIn = undefined;
     },
   },
   extraReducers: {

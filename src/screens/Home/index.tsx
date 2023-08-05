@@ -1,33 +1,64 @@
-import {View, Text, Image, Dimensions, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  FlatList,
+  ScrollView,
+} from 'react-native';
+import {getSongRecom, getUsersPlaylists} from '../../redux/userSlicer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getMe, setLogin, setLogout} from '../../redux/authSlicer';
+import {checkAccessTokenValid} from '../../utils/convertTime';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import PlayListCard from '../../components/PlayListCard';
 import {useDispatch, useSelector} from 'react-redux';
-import {getSongRecom} from '../../redux/userSlicer';
 import React, {useEffect} from 'react';
+import styles from './styles';
 
 const Home = () => {
+  const dispatch = useDispatch();
+
   const accessToken = useSelector(state => state.authSlicer.accessToken);
+  const expiresIn = useSelector(state => state.authSlicer.expiresIn);
+  const playlist = useSelector(state => state.userSlicer.playlist);
   const recSong = useSelector(state => state.userSlicer.recSong);
   const me = useSelector(state => state.authSlicer.me);
-  const dispatch = useDispatch();
+
+  const expireTime = expiresIn.includes(`"`)
+    ? expiresIn.substring(1, expiresIn?.length - 1)
+    : expiresIn;
+  const accToken = accessToken.includes(`"`)
+    ? accessToken.substring(1, accessToken?.length - 1)
+    : accessToken;
 
   useEffect(() => {
     if (accessToken !== undefined) {
-      const accToken = accessToken.includes(`"`)
-        ? accessToken.substring(1, accessToken?.length - 1)
-        : accessToken;
       dispatch(getMe(accToken));
-      if (me === undefined) {
-        const data = {
-          accessToken: undefined,
-          refreshToken: undefined,
-          error: true,
-        };
-        dispatch(setLogin(data));
-      }
     }
-  }, [accessToken]);
+  }, []);
+
+  if (checkAccessTokenValid(accToken, expireTime)) {
+    console.log('Access token hala geçerli.');
+  } else {
+    console.log('Access token süresi doldu. Yeniden yetkilendirme yapılmalı.');
+    if (me === undefined) {
+      const data = {
+        accessToken: undefined,
+        error: true,
+      };
+      dispatch(setLogin(data));
+      dispatch(setLogout());
+      AsyncStorage.removeItem('accessToken');
+    }
+    console.error(me, 'ME');
+  }
+
+  useEffect(() => {
+    if (accessToken !== undefined) {
+      dispatch(getUsersPlaylists(accToken));
+    }
+  }, [accToken, expireTime, me]);
 
   const topTracksIds = [
     '7tQcC1acYIOLUpoaTABfvN',
@@ -43,49 +74,19 @@ const Home = () => {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: 'white',
-      }}>
-      <View
-        style={{
-          flex: 1,
-          margin: 20,
-        }}>
+    <ScrollView style={styles.container}>
+      <View style={styles.innerContainer}>
         {/* Profile */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 15,
-          }}>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
+        <View style={styles.profileContainer}>
+          <View style={styles.profileInnerContainer}>
             <Image
               source={{
                 uri: me?.images[1]?.url,
               }}
-              style={{
-                width: 70,
-                height: 70,
-                marginRight: 10,
-                borderRadius: 50,
-              }}
+              style={styles.profilePhoto}
             />
             <View>
-              <Text
-                style={{
-                  fontSize: 20,
-                  fontWeight: '700',
-                  color: 'black',
-                }}>
-                {me?.display_name}
-              </Text>
+              <Text style={styles.userName}>{me?.display_name}</Text>
               <Text>{me?.followers.total} Followers</Text>
             </View>
           </View>
@@ -97,83 +98,45 @@ const Home = () => {
           />
         </View>
         {/* Generate Playlist */}
-        <View
-          style={{
-            backgroundColor: '#6741FF',
-            marginBottom: 5,
-            borderRadius: 15,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            height: Dimensions.get('window').height / 4.5,
-            elevation: 5,
-          }}>
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'space-between',
-              padding: 10,
-              margin: 10,
-            }}>
+        <View style={styles.generatePlaylistCardContainer}>
+          <View style={styles.generatePlaylistCardInnerContainer}>
             <View>
-              <Text
-                style={{
-                  marginBottom: 5,
-                  color: '#e6e6e6e6',
-                  fontWeight: '400',
-                  fontSize: 14,
-                }}>
-                TOP CHART OF THE DAY
-              </Text>
-              <Text
-                style={{
-                  fontSize: 20,
-                  color: 'white',
-                  fontWeight: 'bold',
-                }}>
-                Stuff You Should {'\n'}Know
-              </Text>
+              <Text style={styles.topHeader}>TOP CHART OF THE DAY</Text>
+              <Text style={styles.mainHeader}>Let's make a {'\n'}playlist</Text>
             </View>
             <TouchableOpacity
               onPress={() => dispatch(getSongRecom(accessToken))}
-              style={{
-                paddingVertical: 6,
-                backgroundColor: '#DEFC22',
-                width: Dimensions.get('window').width / 3.5,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 15,
-                elevation: 20,
-              }}>
-              <Text
-                style={{
-                  color: 'black',
-                  fontWeight: '500',
-                }}>
-                Create now
-              </Text>
+              style={styles.createButton}>
+              <Text style={styles.buttonText}>Create now</Text>
             </TouchableOpacity>
           </View>
-          <View
-            style={{
-              position: 'absolute',
-              right: 0,
-              bottom: 0,
-            }}>
+          <View style={styles.cardImageContainer}>
             <Image
               source={require('../../assets/woman.png')}
-              style={{
-                width: 100,
-                height: Dimensions.get('window').height / 5,
-                borderRadius: 15,
-              }}
+              style={styles.cardImage}
             />
           </View>
         </View>
         {recSong?.tracks?.map(song => (
           <Text key={song?.id}>{song?.name}</Text>
         ))}
+        {/* Playlists */}
+        <View>
+          <Text style={styles.playlistHeader}>Playlists</Text>
+          {playlist !== null && (
+            <FlatList
+              keyExtractor={item => item.id}
+              data={playlist?.items}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              renderItem={({item, index}) => (
+                <PlayListCard index={index} item={item} />
+              )}
+            />
+          )}
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

@@ -11,18 +11,18 @@ import Home from './screens/Home';
 const Stack = createNativeStackNavigator();
 
 const Router = () => {
-  const accessToken = useSelector(state => state?.authSlicer?.accessToken);
+  const accessToken = useSelector(state => state?.authSlicer.accessToken);
   const dispatch = useDispatch();
 
   const getAccessToken = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
-      const refToken = await AsyncStorage.getItem('refreshToken');
+      const expire = await AsyncStorage.getItem('expiresIn');
       if (token !== null) {
         const data = {
           accessToken: token,
-          refreshToken: refToken,
           error: false,
+          expiresIn: expire,
         };
         dispatch(setLogin(data));
       }
@@ -33,6 +33,9 @@ const Router = () => {
 
   useEffect(() => {
     getAccessToken();
+    setInterval(() => {
+      getAccessToken();
+    }, 3500000);
   }, []);
 
   return (
