@@ -43,6 +43,61 @@ export const getUsersPlaylists = createAsyncThunk(
   },
 );
 
+export const getUsersTopArtists = createAsyncThunk(
+  'artists',
+  async accessToken => {
+    try {
+      const res = await axios.get(
+        'https://api.spotify.com/v1/me/top/artists?limit=10',
+        {
+          headers: {
+            Authorization: `Bearer ${
+              accessToken.includes(`"`)
+                ? accessToken.substring(1, accessToken?.length - 1)
+                : accessToken
+            }`,
+          },
+        },
+      );
+      const response = await res.data;
+      return response;
+    } catch (error) {
+      console.log(error);
+    }
+  },
+);
+
+export const playContext = createAsyncThunk(
+  'play',
+  async (accessToken, uri) => {
+    const response = await axios.put(
+      'https://api.spotify.com/v1/me/player/play',
+      {
+        context_uri: uri,
+        offset: {
+          position: 5,
+        },
+        position_ms: 0,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${
+            accessToken.includes(`"`)
+              ? accessToken.substring(1, accessToken?.length - 1)
+              : accessToken
+          }`,
+        },
+      },
+    );
+    try {
+      const result = await response.data;
+      return result;
+    } catch (error) {
+      console.log(error);
+    }
+  },
+);
+
 const userSlicer = createSlice({
   name: 'userSlicer',
   initialState: {
@@ -50,6 +105,8 @@ const userSlicer = createSlice({
     loading: false,
     playlist: undefined,
     error: false,
+    topArtists: undefined,
+    play: undefined,
   },
   extraReducers: {
     [getSongRecom.fulfilled]: (state, action) => {
@@ -77,6 +134,33 @@ const userSlicer = createSlice({
     },
     [getUsersPlaylists.rejected]: (state, action) => {
       state.playlist = undefined;
+      state.error = action.error;
+      state.loading = false;
+    },
+    [getUsersTopArtists.fulfilled]: (state, action) => {
+      state.topArtists = action.payload;
+      state.loading = false;
+      state.error = false;
+    },
+    [getUsersTopArtists.pending]: (state, action) => {
+      state.loading = true;
+      state.error = false;
+    },
+    [getUsersTopArtists.rejected]: (state, action) => {
+      state.topArtists = undefined;
+      state.error = action.error;
+      state.loading = false;
+    },
+    [playContext.fulfilled]: (state, action) => {
+      state.play.push(action.payload);
+      state.loading = false;
+      state.error = false;
+    },
+    [playContext.pending]: (state, action) => {
+      state.loading = true;
+      state.error = false;
+    },
+    [playContext.rejected]: (state, action) => {
       state.error = action.error;
       state.loading = false;
     },

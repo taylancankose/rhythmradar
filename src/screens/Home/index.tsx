@@ -5,8 +5,13 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
+  Linking,
 } from 'react-native';
-import {getSongRecom, getUsersPlaylists} from '../../redux/userSlicer';
+import {
+  getSongRecom,
+  getUsersPlaylists,
+  getUsersTopArtists,
+} from '../../redux/userSlicer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getMe, setLogin, setLogout} from '../../redux/authSlicer';
 import {checkAccessTokenValid} from '../../utils/convertTime';
@@ -15,16 +20,18 @@ import PlayListCard from '../../components/PlayListCard';
 import {useDispatch, useSelector} from 'react-redux';
 import React, {useEffect} from 'react';
 import styles from './styles';
+import TopArtistsList from '../../components/TopArtistsList';
 
 const Home = () => {
   const dispatch = useDispatch();
 
   const accessToken = useSelector(state => state.authSlicer.accessToken);
+  const topArtists = useSelector(state => state.userSlicer.topArtists);
   const expiresIn = useSelector(state => state.authSlicer.expiresIn);
   const playlist = useSelector(state => state.userSlicer.playlist);
+  const loading = useSelector(state => state.userSlicer.loading);
   const recSong = useSelector(state => state.userSlicer.recSong);
   const me = useSelector(state => state.authSlicer.me);
-
   const expireTime = expiresIn.includes(`"`)
     ? expiresIn.substring(1, expiresIn?.length - 1)
     : expiresIn;
@@ -51,7 +58,6 @@ const Home = () => {
       dispatch(setLogout());
       AsyncStorage.removeItem('accessToken');
     }
-    console.error(me, 'ME');
   }
 
   useEffect(() => {
@@ -59,7 +65,11 @@ const Home = () => {
       dispatch(getUsersPlaylists(accToken));
     }
   }, [accToken, expireTime, me]);
-
+  useEffect(() => {
+    if (accessToken !== undefined) {
+      dispatch(getUsersTopArtists(accToken));
+    }
+  }, [accToken, expireTime, me]);
   const topTracksIds = [
     '7tQcC1acYIOLUpoaTABfvN',
     '4ZR5YutZBhiTCsp0EtBznp',
@@ -72,7 +82,6 @@ const Home = () => {
     dispatch(setLogout());
     await AsyncStorage.removeItem('accessToken');
   };
-
   return (
     <ScrollView style={styles.container}>
       <View style={styles.innerContainer}>
@@ -132,6 +141,19 @@ const Home = () => {
               renderItem={({item, index}) => (
                 <PlayListCard index={index} item={item} />
               )}
+            />
+          )}
+        </View>
+        {/* Top Artists */}
+        <View>
+          <Text style={styles.playlistHeader}>Top Artists</Text>
+          {topArtists !== null && (
+            <FlatList
+              data={topArtists?.items}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={item => item.id}
+              renderItem={({item}) => <TopArtistsList item={item} />}
             />
           )}
         </View>

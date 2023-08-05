@@ -48,7 +48,6 @@ export const handleLogin = async () => {
       'expiresIn',
       JSON.stringify(session.accessTokenExpirationDate),
     );
-    console.error(session);
     const data = {
       accessToken: session.accessToken,
       error: false,

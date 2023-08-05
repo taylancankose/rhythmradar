@@ -8,11 +8,6 @@ const getExpiresInSeconds = expireTime => {
 export const checkAccessTokenValid = (accToken, expireTime) => {
   const expiresInSeconds = getExpiresInSeconds(expireTime);
   const now = Date.now() / 1000;
-
   const expirationTime = now + expiresInSeconds;
-  console.log(expirationTime, 'expiriationTime');
-  console.log(now, 'now');
-  console.log(expiresInSeconds, 'expiresInSeconds');
-
   return expirationTime > now;
 };
