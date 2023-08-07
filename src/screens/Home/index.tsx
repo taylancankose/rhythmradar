@@ -5,56 +5,53 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
-  Linking,
 } from 'react-native';
 import {
-  getSongRecom,
+  getMe,
   getUsersPlaylists,
   getUsersTopArtists,
-} from '../../redux/userSlicer';
+  setAccessToken,
+  setLogout,
+} from '../../redux/actions/userActions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {getMe, setLogin, setLogout} from '../../redux/authSlicer';
 import {checkAccessTokenValid} from '../../utils/convertTime';
+import TopArtistsList from '../../components/TopArtistsList';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import PlayListCard from '../../components/PlayListCard';
 import {useDispatch, useSelector} from 'react-redux';
 import React, {useEffect} from 'react';
 import styles from './styles';
-import TopArtistsList from '../../components/TopArtistsList';
+import {useNavigation} from '@react-navigation/native';
 
 const Home = () => {
   const dispatch = useDispatch();
-
-  const accessToken = useSelector(state => state.authSlicer.accessToken);
-  const topArtists = useSelector(state => state.userSlicer.topArtists);
-  const expiresIn = useSelector(state => state.authSlicer.expiresIn);
-  const playlist = useSelector(state => state.userSlicer.playlist);
-  const loading = useSelector(state => state.userSlicer.loading);
-  const recSong = useSelector(state => state.userSlicer.recSong);
-  const me = useSelector(state => state.authSlicer.me);
-  const expireTime = expiresIn.includes(`"`)
+  const accessToken = useSelector(state => state?.userReducer.accessToken);
+  const topArtists = useSelector(state => state.userReducer.topArtists);
+  const expiresIn = useSelector(state => state.userReducer.expiresIn);
+  const playlist = useSelector(state => state.userReducer.playlist);
+  const loading = useSelector(state => state.userReducer.loading);
+  const recSong = useSelector(state => state.userReducer.recSong);
+  const me = useSelector(state => state.userReducer.me);
+  const expireTime = expiresIn?.includes(`"`)
     ? expiresIn.substring(1, expiresIn?.length - 1)
     : expiresIn;
-  const accToken = accessToken.includes(`"`)
-    ? accessToken.substring(1, accessToken?.length - 1)
-    : accessToken;
+  const navigation = useNavigation();
+  // const accToken = accessToken?.includes(`"`)
+  //   ? accessToken?.substring(1, accessToken?.length - 1)
+  //   : accessToken;
 
   useEffect(() => {
     if (accessToken !== undefined) {
-      dispatch(getMe(accToken));
+      dispatch(getMe(accessToken));
     }
   }, []);
 
-  if (checkAccessTokenValid(accToken, expireTime)) {
+  if (checkAccessTokenValid(accessToken, expireTime)) {
     console.log('Access token hala geçerli.');
   } else {
     console.log('Access token süresi doldu. Yeniden yetkilendirme yapılmalı.');
     if (me === undefined) {
-      const data = {
-        accessToken: undefined,
-        error: true,
-      };
-      dispatch(setLogin(data));
+      dispatch(setAccessToken({accessToken: undefined}));
       dispatch(setLogout());
       AsyncStorage.removeItem('accessToken');
     }
@@ -62,26 +59,20 @@ const Home = () => {
 
   useEffect(() => {
     if (accessToken !== undefined) {
-      dispatch(getUsersPlaylists(accToken));
+      dispatch(getUsersPlaylists(accessToken));
     }
-  }, [accToken, expireTime, me]);
+  }, [accessToken, me, expireTime]);
   useEffect(() => {
     if (accessToken !== undefined) {
-      dispatch(getUsersTopArtists(accToken));
+      dispatch(getUsersTopArtists(accessToken));
     }
-  }, [accToken, expireTime, me]);
-  const topTracksIds = [
-    '7tQcC1acYIOLUpoaTABfvN',
-    '4ZR5YutZBhiTCsp0EtBznp',
-    '3U9dWPUyWBW9RiVUgv9lDt',
-    '4OH5Cd8ZOI1eSgJSC9PYmU',
-    '28GSxEfVJew8fCa5dhB0iR',
-  ];
+  }, [accessToken, me, expireTime]);
 
   const handleLogout = async () => {
     dispatch(setLogout());
     await AsyncStorage.removeItem('accessToken');
   };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.innerContainer}>
@@ -90,7 +81,9 @@ const Home = () => {
           <View style={styles.profileInnerContainer}>
             <Image
               source={{
-                uri: me?.images[1]?.url,
+                uri:
+                  me?.images[1]?.url ||
+                  'https://static.vecteezy.com/system/resources/thumbnails/004/141/669/small/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg',
               }}
               style={styles.profilePhoto}
             />
@@ -114,7 +107,7 @@ const Home = () => {
               <Text style={styles.mainHeader}>Let's make a {'\n'}playlist</Text>
             </View>
             <TouchableOpacity
-              onPress={() => dispatch(getSongRecom(accessToken))}
+              onPress={() => navigation.navigate('Generate Playlist')}
               style={styles.createButton}>
               <Text style={styles.buttonText}>Create now</Text>
             </TouchableOpacity>

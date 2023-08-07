@@ -1,9 +1,11 @@
 import {View, Text, ImageBackground, TouchableOpacity} from 'react-native';
 import React from 'react';
-import {handleLogin} from '../../utils/onLogin';
 import styles from './styles';
+import {useDispatch} from 'react-redux';
+import {onLogin} from '../../redux/actions/userActions';
 
 const Login = () => {
+  const dispatch = useDispatch();
   return (
     <ImageBackground
       imageStyle={styles.imageStyle}
@@ -20,7 +22,7 @@ const Login = () => {
       </View>
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          onPress={handleLogin}
+          onPress={() => dispatch(onLogin())}
           activeOpacity={0.92}
           style={styles.button}>
           <Text style={styles.buttonText}>Login with Spotify</Text>

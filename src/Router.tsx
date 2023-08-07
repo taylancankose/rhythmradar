@@ -1,30 +1,25 @@
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {NavigationContainer} from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch, useSelector} from 'react-redux';
-import {setLogin} from './redux/authSlicer';
 import React, {useEffect} from 'react';
 import Login from './screens/Login';
 import Home from './screens/Home';
+import {setLogin} from './redux/actions/userActions';
+import GeneratePlaylist from './screens/GeneratePlaylist';
 
 const Stack = createNativeStackNavigator();
 
 const Router = () => {
-  const accessToken = useSelector(state => state?.authSlicer.accessToken);
+  const accessToken = useSelector(state => state?.userReducer.accessToken);
   const dispatch = useDispatch();
-
   const getAccessToken = async () => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
       const expire = await AsyncStorage.getItem('expiresIn');
       if (token !== null) {
-        const data = {
-          accessToken: token,
-          error: false,
-          expiresIn: expire,
-        };
-        dispatch(setLogin(data));
+        // Giriş işlemi başarılı ise, onLogin action'ını çağırın ve accessToken ve expiresIn değerlerini gönderin
+        dispatch(setLogin(token, expire));
       }
     } catch (error) {
       console.log(error);
@@ -40,30 +35,29 @@ const Router = () => {
 
   return (
     <NavigationContainer>
-      <SafeAreaView
-        style={{
-          flex: 1,
-        }}>
-        {accessToken !== undefined ? (
-          <Stack.Navigator>
-            <Stack.Group
-              screenOptions={{
-                headerShown: false,
-              }}>
-              <Stack.Screen name="Home" component={Home} />
-            </Stack.Group>
-          </Stack.Navigator>
-        ) : (
-          <Stack.Navigator>
-            <Stack.Group
-              screenOptions={{
-                headerShown: false,
-              }}>
-              <Stack.Screen name="Login" component={Login} />
-            </Stack.Group>
-          </Stack.Navigator>
-        )}
-      </SafeAreaView>
+      {accessToken !== undefined ? (
+        <Stack.Navigator>
+          <Stack.Group
+            screenOptions={{
+              headerShown: false,
+            }}>
+            <Stack.Screen name="Home" component={Home} />
+            <Stack.Screen
+              name="Generate Playlist"
+              component={GeneratePlaylist}
+            />
+          </Stack.Group>
+        </Stack.Navigator>
+      ) : (
+        <Stack.Navigator>
+          <Stack.Group
+            screenOptions={{
+              headerShown: false,
+            }}>
+            <Stack.Screen name="Login" component={Login} />
+          </Stack.Group>
+        </Stack.Navigator>
+      )}
     </NavigationContainer>
   );
 };
