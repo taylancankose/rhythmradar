@@ -25,10 +25,36 @@ import {
   PAUSE_CONTEXT_SUCCESS,
   PAUSE_CONTEXT_FAILURE,
   SET_LOGOUT,
+  SEARCH_ARTIST_REQUEST,
+  SEARCH_ARTIST_SUCCESS,
+  SEARCH_ARTIST_FAILURE,
+  SEARCH_NEXT_ARTIST_REQUEST,
+  SEARCH_NEXT_ARTIST_SUCCESS,
+  SEARCH_NEXT_ARTIST_FAILURE,
+  SET_ARTIST_RESULT,
+  SEARCH_NEXT_TRACK_SUCCESS,
+  SEARCH_NEXT_TRACK_REQUEST,
+  SEARCH_NEXT_TRACK_FAILURE,
+  SEARCH_TRACK_FAILURE,
+  SEARCH_TRACK_SUCCESS,
+  SEARCH_TRACK_REQUEST,
+  GET_USERS_TOP_TRACKS_REQUEST,
+  GET_USERS_TOP_TRACKS_SUCCESS,
+  GET_USERS_TOP_TRACKS_FAILURE,
+  SET_TRACK_RESULT,
+  GET_GENRE_REQUEST,
+  GET_GENRE_SUCCESS,
+  GET_GENRE_FAILURE,
+  SET_GENRE,
+  SET_VALENCE,
+  SET_INTSRUMENTALNESS,
+  SET_ENERGY,
+  SET_SELECTION,
 } from '../types';
 import {authorize} from 'react-native-app-auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {spotifyConfig} from '../../utils/spotifyConfig';
+import {getSongRecommendationType} from './userActionsTypes';
 
 export const getSongRecommendationRequest = () => ({
   type: GET_SONG_RECOMMENDATION_REQUEST,
@@ -68,6 +94,76 @@ export const getMeFailure = error => ({
   error,
 });
 
+export const searchArtistsRequest = () => ({
+  type: SEARCH_ARTIST_REQUEST,
+});
+
+export const searchArtistsSuccess = artistData => ({
+  type: SEARCH_ARTIST_SUCCESS,
+  payload: artistData,
+});
+
+export const searchArtistsFailure = error => ({
+  type: SEARCH_ARTIST_FAILURE,
+  error,
+});
+
+export const searchNextArtistsRequest = () => ({
+  type: SEARCH_NEXT_ARTIST_REQUEST,
+});
+
+export const searchNextArtistsSuccess = newArtists => ({
+  type: SEARCH_NEXT_ARTIST_SUCCESS,
+  payload: newArtists,
+});
+
+export const searchNextArtistsFailure = error => ({
+  type: SEARCH_NEXT_ARTIST_FAILURE,
+  error,
+});
+
+export const searchTracksRequest = () => ({
+  type: SEARCH_TRACK_REQUEST,
+});
+
+export const searchTracksSuccess = trackData => ({
+  type: SEARCH_TRACK_SUCCESS,
+  payload: trackData,
+});
+
+export const searchTracksFailure = error => ({
+  type: SEARCH_TRACK_FAILURE,
+  error,
+});
+
+export const searchNextTracksRequest = () => ({
+  type: SEARCH_NEXT_TRACK_REQUEST,
+});
+
+export const searchNextTracksSuccess = newTracks => ({
+  type: SEARCH_NEXT_TRACK_SUCCESS,
+  payload: newTracks,
+});
+
+export const searchNextTracksFailure = error => ({
+  type: SEARCH_NEXT_TRACK_FAILURE,
+  error,
+});
+
+export const getGenresRequest = () => ({
+  type: GET_GENRE_REQUEST,
+});
+
+export const getGenresSuccess = newGenres => ({
+  type: GET_GENRE_SUCCESS,
+  payload: newGenres,
+});
+
+export const getGenresFailure = error => ({
+  type: GET_GENRE_FAILURE,
+  error,
+});
+
 export const getUsersTopArtistsRequest = () => ({
   type: GET_USERS_TOP_ARTISTS_REQUEST,
 });
@@ -77,6 +173,18 @@ export const getUsersTopArtistsSuccess = payload => ({
 });
 export const getUsersTopArtistsFailure = error => ({
   type: GET_USERS_TOP_ARTISTS_FAILURE,
+  error,
+});
+
+export const getUsersTopTracksRequest = () => ({
+  type: GET_USERS_TOP_TRACKS_REQUEST,
+});
+export const getUsersTopTracksSuccess = payload => ({
+  type: GET_USERS_TOP_TRACKS_SUCCESS,
+  payload,
+});
+export const getUsersTopTracksFailure = error => ({
+  type: GET_USERS_TOP_TRACKS_FAILURE,
   error,
 });
 
@@ -100,27 +208,105 @@ export const pauseContextFailure = error => ({
   error,
 });
 
-export const getSongRecommendation = accessToken => {
+export const getGenres = (accessToken: string) => {
   return async dispatch => {
-    dispatch(getSongRecommendationRequest());
+    dispatch(getGenresRequest());
     try {
       const response = await axios.get(
-        'https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA',
+        'https://api.spotify.com/v1/recommendations/available-genre-seeds',
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         },
       );
+      dispatch(getGenresSuccess(response.data));
+    } catch (error) {
+      dispatch(getGenresFailure(error));
+    }
+  };
+};
+
+export const getSongRecommendation = ({
+  accessToken,
+  artist,
+  track,
+  genre,
+  energy,
+  mood,
+  instrumentalness,
+  select,
+}: getSongRecommendationType) => {
+  return async dispatch => {
+    dispatch(getSongRecommendationRequest());
+    let requestURL;
+
+    if (select === 'tracks') {
+      requestURL = `https://api.spotify.com/v1/recommendations?seed_tracks=${track}&target_energy=${energy}&target_instrumentalness=${instrumentalness}&target_valence=${mood}`;
+    } else if (select === 'artistsGenres') {
+      requestURL = `https://api.spotify.com/v1/recommendations?seed_artists=${artist}&seed_genres=${genre}&target_energy=${energy}&target_instrumentalness=${instrumentalness}&target_valence=${mood}`;
+    }
+    console.error(' se', select);
+
+    try {
+      const response = await axios.get(requestURL, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
       dispatch(getSongRecommendationSuccess(response.data));
     } catch (error) {
       console.log(error);
+      if (error.response) {
+        console.log('Response Data:', error.response.data);
+        console.log('Response Status:', error.response.status);
+        console.log('Response Status Text:', error.response.statusText);
+      }
       dispatch(getSongRecommendationFailure(error.message));
     }
   };
 };
 
-export const getMe = accessToken => {
+// export const searchNextArtists = (accessToken, endpoint) => {
+//   return async dispatch => {
+//     dispatch(searchNextArtistsRequest());
+//     try {
+//       const response = await axios.get(endpoint, {
+//         headers: {
+//           Authorization: `Bearer ${accessToken}`,
+//         },
+//       });
+//       const result = await response.data;
+//       dispatch(searchNextArtistsSuccess(result));
+//     } catch (error) {
+//       console.log(error);
+//       dispatch(searchNextArtistsFailure(error.message));
+//     }
+//   };
+// };
+
+// export const searchArtists = (accessToken, input) => {
+//   return async dispatch => {
+//     dispatch(searchArtistsRequest());
+//     try {
+//       const response = await axios.get(
+//         `https://api.spotify.com/v1/search?q=${input}&type=artist`,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${accessToken}`,
+//           },
+//         },
+//       );
+//       const result = response.data;
+//       dispatch(searchArtistsSuccess(result));
+//     } catch (error) {
+//       console.log(error);
+//       dispatch(searchArtistsFailure(error.message));
+//     }
+//   };
+// };
+
+export const getMe = (accessToken: string) => {
   return async dispatch => {
     try {
       dispatch(getMeRequest());
@@ -154,7 +340,7 @@ export const onLogin = () => {
   };
 };
 
-export const getUsersPlaylists = accessToken => {
+export const getUsersPlaylists = (accessToken: string) => {
   return async dispatch => {
     try {
       dispatch(getUsersPlaylistsRequest());
@@ -171,7 +357,7 @@ export const getUsersPlaylists = accessToken => {
   };
 };
 
-export const getUsersTopArtists = accessToken => {
+export const getUsersTopArtists = (accessToken: string) => {
   return async dispatch => {
     try {
       dispatch(getUsersTopArtistsRequest());
@@ -191,6 +377,26 @@ export const getUsersTopArtists = accessToken => {
     } catch (error) {
       console.log(error);
       dispatch(getUsersTopArtistsFailure(error.message));
+    }
+  };
+};
+
+export const getUsersTopTracks = (accessToken: string) => {
+  return async dispatch => {
+    try {
+      dispatch(getUsersTopTracksRequest());
+      const res = await axios.get(
+        'https://api.spotify.com/v1/me/top/tracks?limit=10',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      dispatch(getUsersTopTracksSuccess(res.data));
+    } catch (error) {
+      console.log(error);
+      dispatch(getUsersTopTracksFailure(error.message));
     }
   };
 };
@@ -267,6 +473,41 @@ export const setAccessToken = (accessToken, expiresIn) => ({
 export const setExpiresIn = expiresIn => ({
   type: SET_EXPIRES_IN,
   payload: expiresIn,
+});
+
+export const setArtistResult = IDs => ({
+  type: SET_ARTIST_RESULT,
+  payload: IDs,
+});
+
+export const setTracksResult = IDs => ({
+  type: SET_TRACK_RESULT,
+  payload: IDs,
+});
+
+export const setSelectedGenre = genres => ({
+  type: SET_GENRE,
+  payload: genres,
+});
+
+export const setValence = mood => ({
+  type: SET_VALENCE,
+  payload: mood,
+});
+
+export const setInstrumentalness = value => ({
+  type: SET_INTSRUMENTALNESS,
+  payload: value,
+});
+
+export const setEnergy = energy => ({
+  type: SET_ENERGY,
+  payload: energy,
+});
+
+export const setSelection = selection => ({
+  type: SET_SELECTION,
+  payload: selection,
 });
 
 export const setLogin = (accessToken, expiresIn) => ({

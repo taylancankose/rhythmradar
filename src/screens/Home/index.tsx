@@ -5,11 +5,14 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
+  RefreshControl,
 } from 'react-native';
 import {
+  getGenres,
   getMe,
   getUsersPlaylists,
   getUsersTopArtists,
+  getUsersTopTracks,
   setAccessToken,
   setLogout,
 } from '../../redux/actions/userActions';
@@ -19,7 +22,7 @@ import TopArtistsList from '../../components/TopArtistsList';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import PlayListCard from '../../components/PlayListCard';
 import {useDispatch, useSelector} from 'react-redux';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import styles from './styles';
 import {useNavigation} from '@react-navigation/native';
 
@@ -29,9 +32,11 @@ const Home = () => {
   const topArtists = useSelector(state => state.userReducer.topArtists);
   const expiresIn = useSelector(state => state.userReducer.expiresIn);
   const playlist = useSelector(state => state.userReducer.playlist);
-  const loading = useSelector(state => state.userReducer.loading);
+  const topTracks = useSelector(state => state.userReducer.topTracks);
   const recSong = useSelector(state => state.userReducer.recSong);
   const me = useSelector(state => state.userReducer.me);
+  const [refreshing, setRefreshing] = useState(false);
+
   const expireTime = expiresIn?.includes(`"`)
     ? expiresIn.substring(1, expiresIn?.length - 1)
     : expiresIn;
@@ -59,22 +64,35 @@ const Home = () => {
 
   useEffect(() => {
     if (accessToken !== undefined) {
+      dispatch(getUsersTopArtists(accessToken));
+      dispatch(getUsersTopTracks(accessToken));
       dispatch(getUsersPlaylists(accessToken));
     }
   }, [accessToken, me, expireTime]);
+
   useEffect(() => {
-    if (accessToken !== undefined) {
-      dispatch(getUsersTopArtists(accessToken));
-    }
-  }, [accessToken, me, expireTime]);
+    dispatch(getGenres(accessToken));
+  }, []);
 
   const handleLogout = async () => {
     dispatch(setLogout());
     await AsyncStorage.removeItem('accessToken');
   };
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+    dispatch(getUsersTopArtists(accessToken));
+    dispatch(getUsersTopTracks(accessToken));
+    dispatch(getUsersPlaylists(accessToken));
+    setRefreshing(false);
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+      }
+      style={styles.container}>
       <View style={styles.innerContainer}>
         {/* Profile */}
         <View style={styles.profileContainer}>
@@ -119,9 +137,6 @@ const Home = () => {
             />
           </View>
         </View>
-        {recSong?.tracks?.map(song => (
-          <Text key={song?.id}>{song?.name}</Text>
-        ))}
         {/* Playlists */}
         <View>
           <Text style={styles.playlistHeader}>Playlists</Text>
