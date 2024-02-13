@@ -36,7 +36,6 @@ const Home = () => {
   const recSong = useSelector(state => state.userReducer.recSong);
   const me = useSelector(state => state.userReducer.me);
   const [refreshing, setRefreshing] = useState(false);
-
   const expireTime = expiresIn?.includes(`"`)
     ? expiresIn.substring(1, expiresIn?.length - 1)
     : expiresIn;
@@ -50,7 +49,6 @@ const Home = () => {
       dispatch(getMe(accessToken));
     }
   }, []);
-
   if (checkAccessTokenValid(accessToken, expireTime)) {
     console.log('Access token hala geçerli.');
   } else {
@@ -153,7 +151,27 @@ const Home = () => {
           )}
         </View>
         {/* Top Artists */}
-        <View>
+        <View
+          style={{
+            marginTop: 10,
+          }}>
+          <Text style={styles.playlistHeader}>Top Artists</Text>
+          {topArtists !== null && (
+            <FlatList
+              data={topArtists?.items}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={item => item.id}
+              renderItem={({item}) => <TopArtistsList item={item} />}
+            />
+          )}
+        </View>
+
+        {/* Top Tracks */}
+        <View
+          style={{
+            marginTop: 10,
+          }}>
           <Text style={styles.playlistHeader}>Top Artists</Text>
           {topArtists !== null && (
             <FlatList

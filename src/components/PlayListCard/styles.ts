@@ -3,7 +3,7 @@ import {StyleSheet, Dimensions} from 'react-native';
 export default StyleSheet.create({
   container: {
     marginRight: 5,
-    height: Dimensions.get('window').height / 4.5,
+    height: Dimensions.get('window').height / 5,
     paddingHorizontal: 5,
     borderRadius: 10,
     justifyContent: 'space-around',

@@ -8,6 +8,7 @@ import SeedTrack from './SeedTrack';
 import React from 'react';
 import Playlist from './Playlist';
 import Selection from './Selection';
+import PlaylistName from './PlaylistName';
 
 const Stack = createNativeStackNavigator();
 
@@ -15,6 +16,7 @@ function GeneratePlaylist() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Selection" component={Selection} />
+      <Stack.Screen name="PlaylistName" component={PlaylistName} />
       <Stack.Screen name="SeedArtist" component={SeedArtist} />
       <Stack.Screen name="SeedTrack" component={SeedTrack} />
       <Stack.Screen name="SeedGenre" component={SeedGenre} />

@@ -1,49 +1,18 @@
 import {View, Text} from 'react-native';
 import React, {useState} from 'react';
-import ArcSlider from '../../../components/ArcSlider';
 import styles from './styles';
 import Button from '../../../components/Button';
 import {useDispatch} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import {setInstrumentalness} from '../../../redux/actions/userActions';
+import SliderComp from '../../../components/ArcSlider';
+import {percentProps} from '../../../utils/types';
 
 const SeedInstrumentalness = () => {
-  const [receivedPercent, setReceivedPercent] = useState();
+  const [receivedPercent, setReceivedPercent] = useState<percentProps>();
   const dispatch = useDispatch();
   const navigation = useNavigation();
 
-  const getInstrumentalnessEmoji = value => {
-    if (value <= 0.2) {
-      return {
-        emoji: '🎤',
-        description: 'Highly Vocal',
-      };
-    } else if (value <= 0.4) {
-      return {
-        emoji: '🎵',
-        description: 'Moderately Vocal',
-      };
-    } else if (value <= 0.6) {
-      return {
-        emoji: '🎹',
-        description: 'Equally Vocal and Instrumental',
-      };
-    } else if (value <= 0.8) {
-      return {
-        emoji: '🎻',
-        description: 'Moderately Instrumental',
-      };
-    } else {
-      return {
-        emoji: '🎼',
-        description: 'Highly Instrumental',
-      };
-    }
-  };
-
-  const handleReceivePercent = data => {
-    setReceivedPercent(data);
-  };
   const handleNext = () => {
     if (receivedPercent) {
       dispatch(setInstrumentalness(receivedPercent));
@@ -59,16 +28,123 @@ const SeedInstrumentalness = () => {
         <Text>
           Instrumental intensity refers to how much of a song's content consists
           of instrumental (played by musical instruments) or vocal (containing
-          lyrics) elements. The value range is between 0 and 1.{receivedPercent}
+          lyrics) elements.
         </Text>
       </View>
       <View
         style={{
           flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
         }}>
-        <ArcSlider
-          getEmoji={value => getInstrumentalnessEmoji(value)}
-          sendPercentData={handleReceivePercent}
+        <View>
+          {receivedPercent <= 0.2 ||
+          receivedPercent === 0 ||
+          receivedPercent === undefined ? (
+            <>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 54,
+                  color: 'black',
+                }}>
+                🎤
+              </Text>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 24,
+                  marginTop: 15,
+                  color: 'black',
+                }}>
+                Highly Vocal
+              </Text>
+            </>
+          ) : receivedPercent <= 0.4 ? (
+            <>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 54,
+                  color: 'black',
+                }}>
+                🎵
+              </Text>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 24,
+                  marginTop: 15,
+                  color: 'black',
+                }}>
+                Moderately Vocal
+              </Text>
+            </>
+          ) : receivedPercent <= 0.6 ? (
+            <>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 54,
+                  color: 'black',
+                }}>
+                🎹
+              </Text>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 24,
+                  marginTop: 15,
+                  color: 'black',
+                }}>
+                Equally Vocal and Instrumental
+              </Text>
+            </>
+          ) : receivedPercent <= 0.8 ? (
+            <>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 54,
+                  color: 'black',
+                }}>
+                🎻
+              </Text>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 24,
+                  marginTop: 15,
+                  color: 'black',
+                }}>
+                Moderately Instrumental
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 54,
+                  color: 'black',
+                }}>
+                🎼
+              </Text>
+              <Text
+                style={{
+                  textAlign: 'center',
+                  fontSize: 24,
+                  marginTop: 15,
+                  color: 'black',
+                }}>
+                Highly Instrumental
+              </Text>
+            </>
+          )}
+        </View>
+        <SliderComp
+          value={receivedPercent}
+          onValueChange={setReceivedPercent}
         />
       </View>
       <View style={styles.btnContainer}>

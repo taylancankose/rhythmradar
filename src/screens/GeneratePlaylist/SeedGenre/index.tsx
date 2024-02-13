@@ -10,7 +10,6 @@ import {useNavigation} from '@react-navigation/native';
 const SeedGenre = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const accessToken = useSelector(state => state.userReducer.accessToken);
   const genres = useSelector(state => state.userReducer.genres);
   const {width} = Dimensions.get('window');
   const [selectedGenres, setSelectedGenres] = useState([]);

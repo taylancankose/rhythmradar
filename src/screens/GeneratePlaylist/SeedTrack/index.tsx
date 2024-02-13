@@ -1,16 +1,13 @@
 import {View, Text, TextInput, Dimensions, FlatList} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {useLayoutEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import Button from '../../../components/Button';
 import styles from './styles';
 import axios from 'axios';
 import {useDispatch, useSelector} from 'react-redux';
 import SearchResultCard from '../../../components/SearchResultCard';
-import {
-  getUsersTopTracks,
-  setTracksResult,
-} from '../../../redux/actions/userActions';
+import {setTracksResult, searchTrack} from '../../../redux/actions/userActions';
 
 const SeedTrack = () => {
   const navigation = useNavigation();
@@ -20,6 +17,9 @@ const SeedTrack = () => {
   const [selectedIDs, setSelectedIDs] = useState([]);
   const topTracks = useSelector(state => state.userReducer.topTracks);
   const dispatch = useDispatch();
+  const searchedTracks = useSelector(
+    state => state.userReducer.searchTrackResult,
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -27,23 +27,28 @@ const SeedTrack = () => {
     });
   }, []);
 
-  const searchTrack = async input => {
-    try {
-      const result = await axios.get(
-        `https://api.spotify.com/v1/search?q=${input}&type=track`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-      const response = await result.data;
-      setSelectedTracks(response);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  // const searchTrack = async input => {
+  //   try {
+  //     const result = await axios.get(
+  //       `https://api.spotify.com/v1/search?q=${input}&type=track`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${accessToken}`,
+  //         },
+  //       },
+  //     );
+  //     const response = await result.data;
+  //     setSelectedTracks(response);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
 
+  const searchATrack = async txt => {
+    await dispatch(searchTrack(txt, accessToken));
+    setSelectedTracks(searchedTracks);
+  };
+  console.log(selectedTracks, 'selected');
   const getNext = async () => {
     if (selectedTracks?.tracks?.next) {
       try {
@@ -123,9 +128,7 @@ const SeedTrack = () => {
             <Icon name="search" color="gray" size={22} />
             <TextInput
               placeholder="Bir şarkı ara"
-              onChangeText={txt =>
-                searchTrack(txt.includes(' ') ? txt.replace(' ', '+') : txt)
-              }
+              onChangeText={txt => txt.length > 0 && searchATrack(txt)}
             />
           </View>
         </View>

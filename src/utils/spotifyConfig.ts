@@ -1,6 +1,6 @@
 export const spotifyConfig = {
-  clientId: '71add05410cb47b99167ee9e3fba37a5',
-  clientSecret: '42077071fc94408c9bda9ccded3639f8',
+  clientId: '35202c032aa744cdb3e48ac5d506846f',
+  clientSecret: 'c902b5233f9444279355936c3405eac4',
   redirectUrl: 'com.rhythmradar:/oauth',
   scopes: [
     'ugc-image-upload',

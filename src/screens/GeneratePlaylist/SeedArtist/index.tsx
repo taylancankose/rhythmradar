@@ -1,36 +1,41 @@
+import React, {useEffect, useState} from 'react';
+import styles from './styles';
 import {View, Text, TextInput, Dimensions, FlatList} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import SearchResultCard from '../../../components/SearchResultCard';
+import {useDispatch, useSelector} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import Button from '../../../components/Button';
-import styles from './styles';
-import axios from 'axios';
-import {useDispatch, useSelector} from 'react-redux';
-import SearchResultCard from '../../../components/SearchResultCard';
 import {
   getUsersTopArtists,
+  searchArtists,
   setArtistResult,
 } from '../../../redux/actions/userActions';
 
 const SeedArtist = () => {
   const navigation = useNavigation();
-  const [selectedArtist, setSelectedArtist] = useState({artists: {items: []}});
+  const dispatch = useDispatch();
+  const [selectedArtist, setSelectedArtist] = useState([]); //{artists: {items: []}}
   const accessToken = useSelector(state => state.userReducer.accessToken);
   const {width} = Dimensions.get('window');
   const [selectedIDs, setSelectedIDs] = useState([]);
   const topArtists = useSelector(state => state.userReducer.topArtists);
-  const dispatch = useDispatch();
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: '',
-    });
-  }, []);
+  const searchedArtistData = useSelector(
+    state => state.userReducer.selectedArtist,
+  );
 
   useEffect(() => {
     if (!selectedArtist) {
       dispatch(getUsersTopArtists(accessToken));
     }
   }, []);
+
+  useEffect(() => {
+    if (searchedArtistData && searchedArtistData.artists) {
+      setSelectedArtist(searchedArtistData);
+    }
+  }, [searchedArtistData]);
+
   const sortedTopArtists = [...topArtists.items].sort((a, b) => {
     const isSelectedArtistA = selectedIDs.includes(a.id);
     const isSelectedArtistB = selectedIDs.includes(b.id);
@@ -42,21 +47,28 @@ const SeedArtist = () => {
       return 0;
     }
   });
-  const searchArtist = async input => {
-    try {
-      const result = await axios.get(
-        `https://api.spotify.com/v1/search?q=${input}&type=artist`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-      const response = await result.data;
-      setSelectedArtist(response);
-    } catch (error) {
-      console.log(error);
-    }
+
+  const getSortedResults = () => {
+    const sortedArtist = [...selectedArtist?.artists?.items].sort((a, b) => {
+      const isSelectedA = selectedIDs.includes(a.id);
+      const isSelectedB = selectedIDs.includes(b.id);
+      if (isSelectedA && !isSelectedB) {
+        return -1; // a seçili b değilse a önde
+      } else if (!isSelectedA && isSelectedB) {
+        return 1; // b seçili a değilse b önde
+      }
+      return 0; // ikisi de seçili değilse olduğu gibi bırak
+    });
+
+    return [
+      ...selectedIDs.map(id => sortedArtist.find(item => item.id === id)),
+      ...sortedArtist.filter(item => !selectedIDs.includes(item.id)),
+    ];
+  };
+
+  const searchAnArtist = async txt => {
+    await dispatch(searchArtists(txt, accessToken));
+    setSelectedArtist(searchedArtistData);
   };
 
   const getNext = async () => {
@@ -84,27 +96,11 @@ const SeedArtist = () => {
     }
   };
 
-  const getSortedResults = () => {
-    const sortedArtist = [...selectedArtist?.artists?.items].sort((a, b) => {
-      const isSelectedA = selectedIDs.includes(a.id);
-      const isSelectedB = selectedIDs.includes(b.id);
-      if (isSelectedA && !isSelectedB) {
-        return -1; // a seçili b değilse a önde
-      } else if (!isSelectedA && isSelectedB) {
-        return 1; // b seçili a değilse b önde
-      }
-      return 0; // ikisi de seçili değilse olduğu gibi bırak
-    });
-
-    return [
-      ...selectedIDs.map(id => sortedArtist.find(item => item.id === id)),
-      ...sortedArtist.filter(item => !selectedIDs.includes(item.id)),
-    ];
-  };
   const handleNext = () => {
-    navigation.navigate('SeedGenre');
+    navigation.navigate('SeedValence');
     dispatch(setArtistResult(selectedIDs));
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.innerContainer}>
@@ -123,13 +119,13 @@ const SeedArtist = () => {
           <View style={styles.inputContainer}>
             <Icon name="search" color="gray" size={22} />
             <TextInput
-              placeholder="Bir şarkı ara"
+              placeholder="Bir sanatçı ara"
               onChangeText={txt =>
                 txt.length > 0
-                  ? searchArtist(
+                  ? searchAnArtist(
                       txt.includes(' ') ? txt.replace(' ', '+') : txt,
                     )
-                  : setSelectedArtist({artists: {items: []}})
+                  : setSelectedArtist([])
               }
             />
           </View>
@@ -137,7 +133,7 @@ const SeedArtist = () => {
         <View style={styles.resultContainer}>
           <FlatList
             data={
-              selectedArtist.artists.items.length > 0
+              selectedArtist?.artists?.items?.length > 0
                 ? getSortedResults()
                 : sortedTopArtists
             }

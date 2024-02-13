@@ -5,6 +5,9 @@ import {
   GET_ME_FAILURE,
   GET_ME_REQUEST,
   GET_ME_SUCCESS,
+  GET_PLAYLIST_FAILURE,
+  GET_PLAYLIST_REQUEST,
+  GET_PLAYLIST_SUCCESS,
   GET_SONG_RECOMMENDATION_FAILURE,
   GET_SONG_RECOMMENDATION_REQUEST,
   GET_SONG_RECOMMENDATION_SUCCESS,
@@ -28,6 +31,9 @@ import {
   SEARCH_ARTIST_SUCCESS,
   SEARCH_NEXT_ARTIST_FAILURE,
   SEARCH_NEXT_ARTIST_SUCCESS,
+  SEARCH_TRACK_FAILURE,
+  SEARCH_TRACK_REQUEST,
+  SEARCH_TRACK_SUCCESS,
   SET_ACCESS_TOKEN,
   SET_ARTIST_RESULT,
   SET_ENERGY,
@@ -45,6 +51,7 @@ const initialState = {
   recSong: undefined,
   loading: false,
   playlist: undefined,
+  selectedPlaylist: undefined,
   error: false,
   topArtists: undefined,
   topTracks: null,
@@ -60,6 +67,8 @@ const initialState = {
   instrumentalness: undefined,
   energy: undefined,
   selection: undefined,
+  searchTrackResult: [],
+  selectedArtist: [],
 };
 
 const userReducer = (state = initialState, action) => {
@@ -70,8 +79,9 @@ const userReducer = (state = initialState, action) => {
     case GET_USERS_TOP_TRACKS_REQUEST:
     case GET_ME_REQUEST:
     case GET_GENRE_REQUEST:
+    case SEARCH_TRACK_REQUEST:
     case SEARCH_ARTIST_REQUEST:
-    case SEARCH_ARTIST_REQUEST:
+    case GET_PLAYLIST_REQUEST:
     case PLAY_CONTEXT_REQUEST:
       return {
         ...state,
@@ -89,6 +99,13 @@ const userReducer = (state = initialState, action) => {
       return {
         ...state,
         playlist: action.payload,
+        loading: false,
+        error: false,
+      };
+    case GET_PLAYLIST_SUCCESS:
+      return {
+        ...state,
+        selectedPlaylist: action.payload,
         loading: false,
         error: false,
       };
@@ -134,6 +151,13 @@ const userReducer = (state = initialState, action) => {
         loading: false,
         error: false,
       };
+    case SEARCH_TRACK_SUCCESS:
+      return {
+        ...state,
+        searchTrackResult: action.payload,
+        loading: false,
+        error: false,
+      };
     case SEARCH_NEXT_ARTIST_SUCCESS:
       return {
         ...state,
@@ -158,6 +182,8 @@ const userReducer = (state = initialState, action) => {
     case GET_USERS_TOP_ARTISTS_FAILURE:
     case GET_USERS_TOP_TRACKS_FAILURE:
     case SEARCH_ARTIST_FAILURE:
+    case SEARCH_TRACK_FAILURE:
+    case GET_PLAYLIST_FAILURE:
     case SEARCH_NEXT_ARTIST_FAILURE:
     case PLAY_CONTEXT_FAILURE:
       return {

@@ -7,6 +7,7 @@ import Login from './screens/Login';
 import Home from './screens/Home';
 import {setLogin} from './redux/actions/userActions';
 import GeneratePlaylist from './screens/GeneratePlaylist';
+import SelectedPlaylist from './screens/SelectedPlaylist';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,6 +46,10 @@ const Router = () => {
             <Stack.Screen
               name="Generate Playlist"
               component={GeneratePlaylist}
+            />
+            <Stack.Screen
+              name="SelectedPlaylist"
+              component={SelectedPlaylist}
             />
           </Stack.Group>
         </Stack.Navigator>

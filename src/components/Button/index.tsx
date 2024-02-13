@@ -6,11 +6,12 @@ type propTypes = {
   title: string;
   onPress: () => void;
   color: string;
-  width: number;
+  width?: number | string | any;
   textColor: string;
-  fontSize: number;
-  fontWeight: string;
-  disabled: boolean;
+  fontSize?: number;
+  fontWeight?: string;
+  disabled?: boolean;
+  style?: object;
 };
 
 const Button = ({

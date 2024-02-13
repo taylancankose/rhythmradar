@@ -4,13 +4,24 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from './styles';
 import {useDispatch, useSelector} from 'react-redux';
 import {pauseContext, playContext} from '../../redux/actions/userActions';
+import {useNavigation} from '@react-navigation/native';
+
+const colors = ['#FFE6CA', '#E3FFDA', '#CAE1FF', '#FFCBCA'];
 
 const PlayListCard = ({item, index}) => {
-  const colors = ['#FFE6CA', '#E3FFDA', '#CAE1FF', '#FFCBCA'];
-  const [isPlaying, setIsPlaying] = useState(false);
+  const navigation = useNavigation();
   const dispatch = useDispatch();
+  const [selectedPlaylistID, setSelectedPlaylistID] = useState();
+  const [isPlaying, setIsPlaying] = useState(false);
   const accessToken = useSelector(state => state?.userReducer.accessToken);
 
+  const select = () => {
+    setSelectedPlaylistID(item.id);
+    navigation.navigate('SelectedPlaylist', {
+      playlistID: item?.id,
+    });
+    console.log('first');
+  };
   const play = () => {
     dispatch(playContext(accessToken, item.uri));
     setIsPlaying(true);
@@ -19,8 +30,11 @@ const PlayListCard = ({item, index}) => {
     dispatch(pauseContext(accessToken, item.uri));
     setIsPlaying(false);
   };
+
   return (
-    <View
+    <TouchableOpacity
+      onPress={select}
+      activeOpacity={0.9}
       style={[
         styles.container,
         {
@@ -31,7 +45,7 @@ const PlayListCard = ({item, index}) => {
         <Image
           source={{
             uri:
-              item.images[0].url ||
+              item?.images[0]?.url ||
               'https://static.vecteezy.com/system/resources/thumbnails/004/141/669/small/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg',
           }}
           style={styles.image}
@@ -54,7 +68,7 @@ const PlayListCard = ({item, index}) => {
           <Icon name="play-circle" size={25} color={'black'} />
         )}
       </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 };
 
