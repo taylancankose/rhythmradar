@@ -6,7 +6,6 @@ import {
   TextInput,
   Dimensions,
   FlatList,
-  Image,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -25,7 +24,6 @@ import ResultCard from '../../../components/ResultCard';
 const SeedArtist = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const [searchedArtists, setSearchedArtists] = useState([]); //{artists: {items: []}}
   const accessToken = useSelector(state => state.userReducer.accessToken);
   const {width} = Dimensions.get('window');
   const [selectedIDs, setSelectedIDs] = useState([]);
@@ -36,32 +34,6 @@ const SeedArtist = () => {
 
   const searchAnArtist = txt => {
     dispatch(searchArtists(txt, accessToken));
-    setSearchedArtists(searchedArtistData);
-  };
-
-  const getNext = async () => {
-    if (searchedArtists?.artists?.next) {
-      try {
-        const response = await axios.get(searchedArtists?.artists?.next, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        const result = await response.data;
-        setSearchedArtists(prevData => ({
-          ...prevData,
-          artists: {
-            ...prevData.artists,
-            items: [...prevData.artists.items, ...result.artists.items],
-            next: result.artists.next,
-          },
-        }));
-      } catch (error) {
-        console.log(error);
-      }
-    } else {
-      console.log('No next URL available.');
-    }
   };
 
   const handleNext = () => {
@@ -106,20 +78,11 @@ const SeedArtist = () => {
               <Icon name="search" color="gray" size={22} />
               <TextInput
                 placeholder="Bir sanatçı ara"
-                onChangeText={txt =>
-                  txt.length > 0
-                    ? searchAnArtist(
-                        txt.includes(' ') ? txt.replace(' ', '+') : txt,
-                      )
-                    : setSearchedArtists([])
-                }
+                onChangeText={txt => txt.length > 0 && searchAnArtist(txt)}
               />
             </View>
             <FlatList
-              data={
-                searchedArtists?.artists?.items?.length > 0 &&
-                searchedArtists?.artists?.items
-              }
+              data={searchedArtistData?.artists?.items}
               renderItem={({item}) => (
                 <SearchResultCard
                   item={item}
@@ -133,7 +96,6 @@ const SeedArtist = () => {
               keyExtractor={item => item?.id}
               numColumns={3}
               onEndReachedThreshold={0.5}
-              onEndReached={getNext}
               contentContainerStyle={{
                 marginVertical: 5,
               }}
@@ -142,13 +104,15 @@ const SeedArtist = () => {
           </ScrollView>
           <View style={styles.btnContainer}>
             <Button
-              disabled={searchedArtists?.length <= 0 && true}
+              disabled={searchedArtistData?.length <= 0 && true}
               textColor="white"
               onPress={handleNext}
               fontSize={14}
               fontWeight="600"
               title="Next"
-              color={searchedArtists?.length <= 0 ? 'gray' : 'cornflowerblue'}
+              color={
+                searchedArtistData?.length <= 0 ? 'gray' : 'cornflowerblue'
+              }
               width={width * 0.85}
             />
           </View>

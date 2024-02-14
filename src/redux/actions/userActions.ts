@@ -355,9 +355,12 @@ export const createAddItemToPlaylist = ({
           },
         },
       );
+      console.log(uris, 'uris');
       const result = await response.data;
+      console.log(result);
       dispatch(createPlaylistSuccess(result));
     } catch (error: any) {
+      console.log(error);
       dispatch(createAddItemToPlaylistFailure(error));
     }
   };
@@ -433,7 +436,8 @@ export const searchArtists = (
           },
         },
       );
-      const result = response.data;
+      const result = await response.data;
+      console.log(result.artists.items[0]);
       dispatch(searchArtistsSuccess(result));
     } catch (error: any) {
       console.log(error);
@@ -509,7 +513,9 @@ export const getUsersPlaylists = (accessToken: string) => {
           Authorization: `Bearer ${accessToken}`,
         },
       });
-      dispatch(getUsersPlaylistsSuccess(res.data));
+      const result = await res.data;
+      console.log(result, 'asdhj');
+      dispatch(getUsersPlaylistsSuccess(result));
     } catch (error: any) {
       console.log(error);
       dispatch(getUsersPlaylistsFailure(error.message));

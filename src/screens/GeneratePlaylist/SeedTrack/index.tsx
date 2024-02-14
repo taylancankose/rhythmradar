@@ -7,22 +7,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import React, {useLayoutEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import Button from '../../../components/Button';
 import styles from './styles';
-import axios from 'axios';
 import {useDispatch, useSelector} from 'react-redux';
 import SearchResultCard from '../../../components/SearchResultCard';
-import {searchTrack} from '../../../redux/actions/userActions';
+import {searchTrack, setTracksResult} from '../../../redux/actions/userActions';
 import ResultCard from '../../../components/ResultCard';
 
 const SeedTrack = () => {
   const navigation = useNavigation();
-  const [trackList, setTrackList] = useState([]);
   const accessToken = useSelector(state => state.userReducer.accessToken);
   const {width} = Dimensions.get('window');
   const [selectedIDs, setSelectedIDs] = useState([]);
@@ -31,7 +28,6 @@ const SeedTrack = () => {
   const searchedTracks = useSelector(
     state => state.userReducer.searchTrackResult,
   );
-
   useLayoutEffect(() => {
     navigation.setOptions({
       title: '',
@@ -40,32 +36,6 @@ const SeedTrack = () => {
 
   const searchATrack = txt => {
     dispatch(searchTrack(txt, accessToken));
-    setTrackList(searchedTracks);
-  };
-
-  const getNext = async () => {
-    if (trackList?.tracks?.next) {
-      try {
-        const response = await axios.get(trackList?.tracks?.next, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        const result = await response.data;
-        setTrackList(prevData => ({
-          ...prevData,
-          tracks: {
-            ...prevData.tracks,
-            items: [...prevData.tracks.items, ...result.tracks.items],
-            next: result.tracks.next,
-          },
-        }));
-      } catch (error) {
-        console.log(error);
-      }
-    } else {
-      console.log('No next URL available.');
-    }
   };
 
   const handleNext = () => {
@@ -122,7 +92,8 @@ const SeedTrack = () => {
             </View>
             <FlatList
               data={
-                trackList?.tracks?.items?.length > 0 && trackList?.tracks?.items
+                searchedTracks?.tracks?.items?.length > 0 &&
+                searchedTracks?.tracks?.items
               }
               renderItem={({item}) => (
                 <SearchResultCard
@@ -137,7 +108,6 @@ const SeedTrack = () => {
               keyExtractor={item => item?.id}
               numColumns={3}
               onEndReachedThreshold={0.5}
-              onEndReached={getNext}
               contentContainerStyle={{
                 marginVertical: 5,
               }}
@@ -146,13 +116,13 @@ const SeedTrack = () => {
           </ScrollView>
           <View style={styles.btnContainer}>
             <Button
-              disabled={trackList?.length <= 0 && true}
+              disabled={searchedTracks?.length <= 0 && true}
               textColor="white"
               onPress={handleNext}
               fontSize={14}
               fontWeight="600"
               title="Next"
-              color={trackList?.length <= 0 ? 'gray' : 'cornflowerblue'}
+              color={searchedTracks?.length <= 0 ? 'gray' : 'cornflowerblue'}
               width={width * 0.85}
             />
           </View>

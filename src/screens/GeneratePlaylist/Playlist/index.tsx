@@ -17,6 +17,7 @@ const Playlist = () => {
   const [selectedUris, setSelectedUris] = useState([]);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const route = useRoute();
   const playlist = useSelector(state => state.userReducer.playlist);
   const recSongs = useSelector(state => state.userReducer.recSong);
   const accessToken = useSelector(state => state.userReducer.accessToken);
@@ -24,6 +25,7 @@ const Playlist = () => {
   const artistIDs = useSelector(state => state.userReducer.selectedIDs);
   const trackIDs = useSelector(state => state.userReducer.selectedTrackIDs);
   const mood = useSelector(state => state.userReducer.mood);
+  const {name} = route.params;
   const instrumentalness = useSelector(
     state => state.userReducer.instrumentalness,
   );
@@ -62,7 +64,6 @@ const Playlist = () => {
         select,
       }),
     );
-    dispatch(getUsersPlaylists(accessToken));
   }, [
     accessToken,
     formattedTrackIDs,
@@ -70,19 +71,31 @@ const Playlist = () => {
     mood,
     instrumentalness,
     select,
+    name,
   ]);
-  const myCreatedPlaylist = playlist?.items[0].id;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Burada yapmak istediğiniz işlemleri gerçekleştirin
+      dispatch(getUsersPlaylists(accessToken));
+    }, 1000); // 5 saniyelik gecikme
 
+    return () => clearTimeout(timer); // Temizleme işlemi
+  }, []);
+
+  let myCreatedPlaylist = playlist.items.find(
+    list => list.name === route.params.name,
+  );
   const handleAddToPlaylist = () => {
     dispatch(
       createAddItemToPlaylist({
         accessToken,
         uris: selectedUris,
-        playlistID: myCreatedPlaylist,
+        playlistID: myCreatedPlaylist.id,
       }),
     );
     navigation.navigate('Home');
   };
+  console.log('playlist ID: ', myCreatedPlaylist?.id);
   return (
     <View style={styles.container}>
       <TouchableOpacity
