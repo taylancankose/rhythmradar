@@ -3,14 +3,10 @@ import React from 'react';
 import styles from './styles';
 import {useDispatch} from 'react-redux';
 import {onLogin} from '../../redux/actions/userActions';
-import axios from 'axios';
 
 const Login = () => {
   const dispatch = useDispatch();
-  const login = async () => {
-    const res = await axios.get('http://localhost:8888/login');
-    console.log(res);
-  };
+
   return (
     <ImageBackground
       imageStyle={styles.imageStyle}

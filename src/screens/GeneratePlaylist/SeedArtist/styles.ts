@@ -26,6 +26,7 @@ export default StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     color: 'black',
+    marginBottom: 10,
   },
   infoTextNum: {
     fontSize: 15,
@@ -37,6 +38,7 @@ export default StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#000',
     alignItems: 'center',
+    marginBottom: 20,
   },
   btnContainer: {
     position: 'absolute',
@@ -47,5 +49,13 @@ export default StyleSheet.create({
   },
   resultContainer: {
     marginVertical: 20,
+  },
+  selectedSongContainer: {
+    paddingVertical: 10,
+    display: 'flex',
+  },
+  cardContainer: {
+    display: 'flex',
+    flexDirection: 'row',
   },
 });

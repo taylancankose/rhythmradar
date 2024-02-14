@@ -46,7 +46,6 @@ const SeedValence = () => {
     }
     navigation.navigate('SeedInstrumentalness');
   };
-  console.log(receivedPercent);
   return (
     <View style={styles.container}>
       <View style={styles.innerContainer}>

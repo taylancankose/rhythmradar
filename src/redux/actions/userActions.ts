@@ -478,7 +478,6 @@ export const getMe = (accessToken: string) => {
       dispatch(getMeSuccess(response.data));
     } catch (error: any) {
       console.log(error);
-      console.log('hata baba');
       dispatch(getMeFailure(error.message));
     }
   };

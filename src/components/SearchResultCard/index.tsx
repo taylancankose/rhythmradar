@@ -2,7 +2,15 @@ import {View, Text, TouchableOpacity, Image} from 'react-native';
 import React from 'react';
 import styles from './styles';
 
-const SearchResultCard = ({item, setSelectedIDs, selectedIDs}) => {
+const SearchResultCard = ({
+  item,
+  setSelectedIDs,
+  selectedIDs,
+  setSelectedArtists,
+  selectedArtists,
+  setSelectedTracks,
+  selectedTracks,
+}) => {
   if (!item || !item.id) {
     return null;
   }
@@ -11,6 +19,19 @@ const SearchResultCard = ({item, setSelectedIDs, selectedIDs}) => {
       setSelectedIDs(selectedIDs.filter(id => id !== item?.id)); // Seçiliyse çıkar
     } else if (selectedIDs.length < 5) {
       setSelectedIDs([...selectedIDs, item?.id]); // Seçili değilse ekle (5 öğe sınırlamasını kontrol et)
+    }
+    if (selectedArtists) {
+      if (selectedArtists.includes(item)) {
+        setSelectedArtists(selectedArtists.filter(artist => artist !== item));
+      } else if (selectedIDs.length < 5) {
+        setSelectedArtists([...selectedArtists, item]);
+      }
+    } else if (selectedTracks) {
+      if (selectedTracks.includes(item)) {
+        setSelectedTracks(selectedTracks.filter(track => track !== item));
+      } else if (selectedIDs.length < 5) {
+        setSelectedTracks([...selectedTracks, item]);
+      }
     }
   };
 

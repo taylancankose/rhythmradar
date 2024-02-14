@@ -20,7 +20,6 @@ const PlayListCard = ({item, index}) => {
     navigation.navigate('SelectedPlaylist', {
       playlistID: item?.id,
     });
-    console.log('first');
   };
   const play = () => {
     dispatch(playContext(accessToken, item.uri));

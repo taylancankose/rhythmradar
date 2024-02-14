@@ -32,8 +32,6 @@ const Home = () => {
   const topArtists = useSelector(state => state.userReducer.topArtists);
   const expiresIn = useSelector(state => state.userReducer.expiresIn);
   const playlist = useSelector(state => state.userReducer.playlist);
-  const topTracks = useSelector(state => state.userReducer.topTracks);
-  const recSong = useSelector(state => state.userReducer.recSong);
   const me = useSelector(state => state.userReducer.me);
   const [refreshing, setRefreshing] = useState(false);
   const expireTime = expiresIn?.includes(`"`)

@@ -74,7 +74,6 @@ const Playlist = () => {
   const myCreatedPlaylist = playlist?.items[0].id;
 
   const handleAddToPlaylist = () => {
-    console.log('first');
     dispatch(
       createAddItemToPlaylist({
         accessToken,
@@ -84,7 +83,6 @@ const Playlist = () => {
     );
     navigation.navigate('Home');
   };
-  console.log(selectedUris);
   return (
     <View style={styles.container}>
       <TouchableOpacity

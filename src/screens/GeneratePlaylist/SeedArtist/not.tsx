@@ -1,189 +1,220 @@
-import {View, Text, TextInput, Dimensions, FlatList} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
-import Button from '../../../components/Button';
-import styles from './styles';
-import axios from 'axios';
-import {useDispatch, useSelector} from 'react-redux';
-import SearchResultCard from '../../../components/SearchResultCard';
-import {
-  getUsersTopArtists,
-  searchArtists,
-  setArtistResult,
-} from '../../../redux/actions/userActions';
-
-const SeedArtist = () => {
-  const navigation = useNavigation();
-  const [selectedArtist, setSelectedArtist] = useState({artists: {items: []}});
-  const accessToken = useSelector(state => state.userReducer.accessToken);
-  const {width} = Dimensions.get('window');
-  const [selectedIDs, setSelectedIDs] = useState([]);
-  const topArtists = useSelector(state => state.userReducer.topArtists);
-  const dispatch = useDispatch();
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: '',
-    });
-  }, []);
-  const selectedArtistt = useSelector(
-    state => state.userReducer.selectedArtist,
-  );
-  console.log(selectedArtistt.artists.items, 'selsc');
-  useEffect(() => {
-    if (!selectedArtist) {
-      dispatch(getUsersTopArtists(accessToken));
-    } else if (selectedArtist && selectedArtistt.artists.items > 0) {
-      setSelectedArtist(selectedArtistt);
-    }
-  }, []);
-
-  const sortedTopArtists = [...topArtists.items].sort((a, b) => {
-    const isSelectedArtistA = selectedIDs.includes(a.id);
-    const isSelectedArtistB = selectedIDs.includes(b.id);
-    if (isSelectedArtistA && !isSelectedArtistB) {
-      return -1;
-    } else if (!isSelectedArtistA && isSelectedArtistB) {
-      return 1;
-    } else {
-      return 0;
-    }
-  });
-  // const searchArtist = async input => {
-  //   try {
-  //     const result = await axios.get(
-  //       `https://api.spotify.com/v1/search?q=${input}&type=artist`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${accessToken}`,
-  //         },
-  //       },
-  //     );
-  //     const response = await result.data;
-  //     setSelectedArtist(response);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-  const searchArtist = async (txt: string, accessToken: string) => {
-    dispatch(searchArtists(txt, accessToken));
-  };
-  const getNext = async () => {
-    if (selectedArtist?.artists?.next) {
-      try {
-        const response = await axios.get(selectedArtist?.artists?.next, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        const result = await response.data;
-        setSelectedArtist(prevData => ({
-          ...prevData,
-          artists: {
-            ...prevData.artists,
-            items: [...prevData.artists.items, ...result.artists.items],
-            next: result.artists.next,
-          },
-        }));
-      } catch (error) {
-        console.log(error);
-      }
-    } else {
-      console.log('No next URL available.');
-    }
-  };
-
-  const getSortedResults = () => {
-    const sortedArtist = [...selectedArtist?.artists?.items].sort((a, b) => {
-      const isSelectedA = selectedIDs.includes(a.id);
-      const isSelectedB = selectedIDs.includes(b.id);
-      if (isSelectedA && !isSelectedB) {
-        return -1; // a seçili b değilse a önde
-      } else if (!isSelectedA && isSelectedB) {
-        return 1; // b seçili a değilse b önde
-      }
-      return 0; // ikisi de seçili değilse olduğu gibi bırak
-    });
-
-    return [
-      ...selectedIDs.map(id => sortedArtist.find(item => item.id === id)),
-      ...sortedArtist.filter(item => !selectedIDs.includes(item.id)),
-    ];
-  };
-  const handleNext = () => {
-    navigation.navigate('SeedValence');
-    dispatch(setArtistResult(selectedIDs));
-  };
-  return (
-    <View style={styles.container}>
-      <View style={styles.innerContainer}>
-        <View>
-          <Text style={styles.header}>Base Artists</Text>
-          <Text>
-            Please select 1 to 5 base artists that reflect your music taste.
-            These artists will shape your personalized playlist. More selections
-            give us better insights for accurate recommendations across genres
-            and styles.
-          </Text>
-          <View style={styles.infoTextContainer}>
-            <Text style={styles.infoText}>Selected Artists</Text>
-            <Text style={styles.infoTextNum}>{selectedIDs.length}/5</Text>
-          </View>
-          <View style={styles.inputContainer}>
-            <Icon name="search" color="gray" size={22} />
-            <TextInput
-              placeholder="Bir sanatçı ara"
-              onChangeText={txt =>
-                txt.length > 0
-                  ? searchArtist(
-                      txt.includes(' ') ? txt.replace(' ', '+') : txt,
-                      accessToken,
-                    )
-                  : setSelectedArtist({artists: {items: []}})
-              }
-            />
-          </View>
-        </View>
-        <View style={styles.resultContainer}>
-          <FlatList
-            data={
-              selectedArtistt.artists.items.length > 0
-                ? getSortedResults()
-                : sortedTopArtists
-            }
-            renderItem={({item}) => (
-              <SearchResultCard
-                item={item}
-                selectedIDs={selectedIDs}
-                setSelectedIDs={setSelectedIDs}
-              />
-            )}
-            scrollEnabled
-            keyExtractor={item => item?.id}
-            numColumns={3}
-            onEndReachedThreshold={0.5}
-            onEndReached={getNext}
-            contentContainerStyle={{
-              marginVertical: 5,
-            }}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-        <View style={styles.btnContainer}>
-          <Button
-            disabled={selectedArtistt.length <= 0 && true}
-            textColor="white"
-            onPress={handleNext}
-            fontSize={14}
-            fontWeight="600"
-            title="Next"
-            color={selectedArtistt.length <= 0 ? 'gray' : 'cornflowerblue'}
-            width={width * 0.85}
-          />
-        </View>
-      </View>
-    </View>
-  );
-};
-
-export default SeedArtist;
+[
+  {
+    album: {
+      album_type: 'album',
+      artists: [Array],
+      available_markets: [Array],
+      external_urls: [Object],
+      href: 'https://api.spotify.com/v1/albums/2Kh43m04B1UkVcpcRa1Zug',
+      id: '2Kh43m04B1UkVcpcRa1Zug',
+      images: [Array],
+      name: 'Metallica',
+      release_date: '1991-08-12',
+      release_date_precision: 'day',
+      total_tracks: 12,
+      type: 'album',
+      uri: 'spotify:album:2Kh43m04B1UkVcpcRa1Zug',
+    },
+    artists: [[Object]],
+    available_markets: [
+      'AR',
+      'AU',
+      'AT',
+      'BE',
+      'BO',
+      'BR',
+      'BG',
+      'CL',
+      'CO',
+      'CR',
+      'CY',
+      'CZ',
+      'DK',
+      'DO',
+      'DE',
+      'EC',
+      'EE',
+      'SV',
+      'FI',
+      'FR',
+      'GR',
+      'GT',
+      'HN',
+      'HK',
+      'HU',
+      'IS',
+      'IE',
+      'IT',
+      'LV',
+      'LT',
+      'LU',
+      'MY',
+      'MT',
+      'MX',
+      'NL',
+      'NZ',
+      'NI',
+      'NO',
+      'PA',
+      'PY',
+      'PE',
+      'PH',
+      'PL',
+      'PT',
+      'SG',
+      'SK',
+      'ES',
+      'SE',
+      'CH',
+      'TW',
+      'TR',
+      'UY',
+      'GB',
+      'AD',
+      'LI',
+      'MC',
+      'ID',
+      'JP',
+      'TH',
+      'VN',
+      'RO',
+      'IL',
+      'ZA',
+      'SA',
+      'AE',
+      'BH',
+      'QA',
+      'OM',
+      'KW',
+      'EG',
+      'MA',
+      'DZ',
+      'TN',
+      'LB',
+      'JO',
+      'PS',
+      'IN',
+      'BY',
+      'KZ',
+      'MD',
+      'UA',
+      'AL',
+      'BA',
+      'HR',
+      'ME',
+      'MK',
+      'RS',
+      'SI',
+      'KR',
+      'BD',
+      'PK',
+      'LK',
+      'GH',
+      'KE',
+      'NG',
+      'TZ',
+      'UG',
+      'AG',
+      'AM',
+      'BS',
+      'BB',
+      'BZ',
+      'BT',
+      'BW',
+      'BF',
+      'CV',
+      'CW',
+      'DM',
+      'FJ',
+      'GM',
+      'GE',
+      'GD',
+      'GW',
+      'GY',
+      'HT',
+      'JM',
+      'KI',
+      'LS',
+      'LR',
+      'MW',
+      'MV',
+      'ML',
+      'MH',
+      'FM',
+      'NA',
+      'NR',
+      'NE',
+      'PW',
+      'PG',
+      'WS',
+      'SM',
+      'ST',
+      'SN',
+      'SC',
+      'SL',
+      'SB',
+      'KN',
+      'LC',
+      'VC',
+      'SR',
+      'TL',
+      'TO',
+      'TT',
+      'TV',
+      'VU',
+      'AZ',
+      'BN',
+      'BI',
+      'KH',
+      'CM',
+      'TD',
+      'KM',
+      'GQ',
+      'SZ',
+      'GA',
+      'GN',
+      'KG',
+      'LA',
+      'MO',
+      'MR',
+      'MN',
+      'NP',
+      'RW',
+      'TG',
+      'UZ',
+      'ZW',
+      'BJ',
+      'MG',
+      'MU',
+      'MZ',
+      'AO',
+      'CI',
+      'DJ',
+      'ZM',
+      'CD',
+      'CG',
+      'IQ',
+      'LY',
+      'TJ',
+      'VE',
+      'ET',
+      'XK',
+    ],
+    disc_number: 1,
+    duration_ms: 386493,
+    explicit: false,
+    external_ids: {isrc: 'GBF089190016'},
+    external_urls: {
+      spotify: 'https://open.spotify.com/track/4aYLAF6ckQ5ooGGGM7sWAa',
+    },
+    href: 'https://api.spotify.com/v1/tracks/4aYLAF6ckQ5ooGGGM7sWAa',
+    id: '4aYLAF6ckQ5ooGGGM7sWAa',
+    is_local: false,
+    name: 'The Unforgiven',
+    popularity: 76,
+    preview_url: null,
+    track_number: 4,
+    type: 'track',
+    uri: 'spotify:track:4aYLAF6ckQ5ooGGGM7sWAa',
+  },
+];
